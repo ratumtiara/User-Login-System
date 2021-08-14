@@ -1,8 +1,23 @@
+require('dotenv').config()
 const express = require('express')
-const app = express()
 const bcrypt = require('bcrypt')
+const { Sequelize } = require('sequelize')
+const getUserModel = require('./models/user')
 
-// const users = []
+const sequelize = new Sequelize(process.env.DB_URI)
+sequelize
+    .authenticate()
+    .then(() => {
+        console.log('Connection has been established successfully.');
+    })
+    .catch(err => {
+        console.error('Unable to connect to the database:', err);
+    });
+
+const User = getUserModel(sequelize)
+User.sync({ alter: true })
+
+const app = express()
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({extended: false}))
@@ -16,7 +31,7 @@ app.get('/login', (req,res) => {
     res.render('login.ejs')
 })
 
-app.post('/login', (req,res)=>{
+app.post('/login', (req,res) => {
 
 })
 
@@ -27,17 +42,18 @@ app.get('/register', (req,res) => {
 app.post('/register', async (req,res) => {
     try{
         const hashedPassword = await bcrypt.hash(req.body.password, 5)
-        users.push({
-            id: Date.now().toString(), //kalau ada database ini otomatis
+        const user = await User.create({
             name: req.body.name,
-            email:req.body.email,
+            email: req.body.email,
             password: hashedPassword
         })
+        console.log(`Created user: ${JSON.stringify(user)}`);
         res.redirect('/login')
-    } catch {
+    } catch (err) {
+        console.log(err);
         res.redirect('/register')
     }
-    console.log(users)
 })
 
-app.listen(3141)
+const port = process.env.PORT || 3141
+app.listen(port, () => console.log(`Serving in port ${port}`))
