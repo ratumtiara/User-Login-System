@@ -17,6 +17,7 @@ services:
     restart: always
     volumes:
       - .:/app  
+      - /app/node_modules
     ports:
       - "3141:3141"
     depends_on:
