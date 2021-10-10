@@ -4,15 +4,6 @@ const bcrypt = require('bcrypt')
 const db = require('./models/index')
 const getUserModel = require('./models/user')
 
-db.sequelize
-    .authenticate()
-    .then(() => {
-        console.log('Connection has been established successfully.');
-    })
-    .catch(err => {
-        console.error('Unable to connect to the database:', err);
-    });
-
 const User = getUserModel(db.sequelize)
 User.sync({ alter: true })
 
@@ -71,5 +62,14 @@ app.post('/register', async (req,res) => {
     }
 })
 
-const port = process.env.PORT || 3141
-app.listen(port, () => console.log(`Serving in port ${port}`))
+db.sequelize
+    .authenticate()
+    .then(() => {
+        console.log('Connection has been established successfully.');
+        const port = process.env.PORT || 3141
+        app.listen(port, () => console.log(`Serving in port ${port}`))
+    })
+    .catch(err => {
+        console.error('Unable to connect to the database:', err);
+        throw err
+    });
